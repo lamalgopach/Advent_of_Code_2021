@@ -1,5 +1,6 @@
 instructions = []
 paper = {}
+dots_set = set()
 while True:
 	try:
 		data = input()
@@ -12,58 +13,38 @@ while True:
 		else:
 			data = data.split(",")
 			x, y = int(data[0]), int(data[1])
-			if x not in paper:
-				paper[x] = set()
-			paper[x].add(y)
+			dots_set.add((x, y))
 	except EOFError:
 		break
+
 for instruction in instructions:
 	axis, fold = instruction.split("=")
 	fold = int(fold)
 	paper_after_folding = {}
-	if axis == "x":
-		for x, ys in paper.items():
-			if x > fold:
-				new_x = fold - abs(fold - x)
-				if new_x not in paper_after_folding:
-					paper_after_folding[new_x] = ys
-				else:
-					paper_after_folding[new_x].update(ys)
-					
-			elif x in paper_after_folding:
-				paper_after_folding[x].update(ys)
-			else:
-				paper_after_folding[x] = ys
-
-	elif axis == "y":
-		for x, ys in paper.items():
-			paper_after_folding[x] = set()
-			for y in ys:
-				if y > fold:
-					new_y = fold - abs(fold - y)
-					paper_after_folding[x].add(new_y)
-				else:
-					paper_after_folding[x].add(y)
-
-	dots = 0
-	for x, ys in paper_after_folding.items():
-		dots += len(ys)
-	paper = paper_after_folding
+	new_dots_set = set()
+	for dot in dots_set:
+		if axis == "x" and dot[0] > fold:
+			new_x = fold - abs(dot[0] - fold)
+			new_dots_set.add((new_x, dot[1]))
+		elif axis == "y" and dot[1] > fold:
+			new_y = fold - abs(dot[1] - fold)
+			new_dots_set.add((dot[0], new_y))
+		else:
+			new_dots_set.add(dot)
+	dots_set = new_dots_set
+	dots = len(dots_set)
+	print(dots)
 
 max_x, max_y = 0, 0
-for k, v in paper_after_folding.items():
-	max_x = max(max_x, k)
-	max_y = max(max_y, max(v))
+for dot in dots_set:
+	max_x, max_y = max(max_x, dot[0]), max(max_y, dot[1])
 
-paper = []
-for i in range(max_x + 2):
-	lst = ["."] * (max_y + 1)
-	paper.append(lst)
+paper = [["."] * (max_y + 1) for i in range(max_x + 2)]
 
-for x, ys in paper_after_folding.items():
-	for y in ys:
-		paper[x][y] = "#"
-
+for dot in dots_set:
+	x, y = dot[0], dot[1]
+	paper[x][y] = "#"
 
 for line in paper:
 	print(line)
+# 71 -> 49
